@@ -2,8 +2,15 @@ import win32com.client
 
 print('Loading...\n')
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-inbox = outlook.GetDefaultFolder(6)
-folders = inbox.folders
+
+try:
+    mail_folder = outlook.Folders('remotedba@deloitte.com')
+    inbox = mail_folder.Folders('Inbox')
+    folders = inbox.folders
+except Exception:
+    inbox = outlook.GetDefaultFolder(6)
+    folders = inbox.folders
+
 all_folders = []
 
 for folder in folders:

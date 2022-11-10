@@ -1,10 +1,14 @@
 import win32com.client
 import xlsxwriter as xl
 import datetime
+import time
 
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
-inbox = outlook.GetDefaultFolder(6)
-
+try:
+    mail_folder = outlook.Folders('remotedba@deloitte.com')
+    inbox = mail_folder.Folders('Inbox')
+except Exception:
+    inbox = outlook.GetDefaultFolder(6)
 
 importance_list = ['Low', 'Medium', 'High']
 sensitivity_list = ['Normal', 'Personal', 'Private', 'Confidential']
@@ -33,8 +37,8 @@ def extract_mail():
     worksheet.write('J1', 'Subject', header_style)
     worksheet.write('K1', 'Body', header_style)
 
-    from_date = input('\nEnter From Date (DD-MM-YYYY)\n')
-    to_date = input('Enter To Date (DD-MM-YYYY)\n')
+    from_date = input('\nEnter From Date (DD-MM-YYYY)\n').replace(' ', '')
+    to_date = input('Enter To Date (DD-MM-YYYY)\n').replace(' ', '')
     date_format = "%d-%m-%Y"
 
     try:
@@ -63,22 +67,30 @@ def extract_mail():
     messages = inbox.Items
     messages.sort("ReceivedTime", True)
     message = messages.GetFirst()
+
     while message:
         try:
-            received_datetime = str(message.ReceivedTime).split(' ')
-            received_date = received_datetime[0]
-            received_time = received_datetime[1].split('.')[0]
+            pass
+        except Exception:
+            message = messages.GetNext()
+            continue
 
-            temp_received_date = received_date.split('-')
-            received_datetime = datetime.datetime(int(temp_received_date[0]),
-                                                  int(temp_received_date[1]),
-                                                  int(temp_received_date[2]))
-
-            if received_datetime > to_date:
+        try:
+            try:
+                received_datetime = str(message.ReceivedTime).split(' ')
+                received_date_time_string = f"{received_datetime[0]} {received_datetime[1].split('.')[0].split('+')[0]}"
+                received_date = received_datetime[0].split('-')
+                received_datetime = datetime.datetime(int(received_date[0]),
+                                                      int(received_date[1]),
+                                                      int(received_date[2]))
+                if received_datetime > to_date:
+                    continue
+                if received_datetime < from_date:
+                    break
+            except Exception:
                 continue
-            if received_datetime < from_date:
-                break
 
+            print(f'Email - {row} at {received_date_time_string}')
             worksheet.write(row, 0, row)
 
             try:
@@ -102,7 +114,7 @@ def extract_mail():
             except Exception:
                 worksheet.write(row, 3, '')
 
-            worksheet.write(row, 4, f'{received_date} {received_time}')
+            worksheet.write(row, 4, received_date_time_string)
 
             worksheet.write(row, 5, importance_list[message.Importance])
             worksheet.write(row, 6, sensitivity_list[message.Sensitivity])
