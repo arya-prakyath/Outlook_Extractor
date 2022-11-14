@@ -1,7 +1,6 @@
 import win32com.client
 import xlsxwriter as xl
 import datetime
-import time
 
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
 try:
@@ -16,8 +15,7 @@ sensitivity_list = ['Normal', 'Personal', 'Private', 'Confidential']
 
 def extract_mail():
     try:
-        now = datetime.datetime.now().strftime("%d-%m-%y_%H;%M;%S")
-        file_name = f"Outlook_Extract_{now}.xlsx"
+        file_name = "Outlook_Mails.xlsx"
         workbook = xl.Workbook(file_name)
         worksheet = workbook.add_worksheet()
     except xl.exceptions.FileCreateError:
