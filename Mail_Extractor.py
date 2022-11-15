@@ -108,15 +108,22 @@ def extract_mail():
                     worksheet.write(row, 2, '-')
 
             try:
-                worksheet.write(row, 3, str(message.CC))
+                if len(message.CC) == 0:
+                    worksheet.write(row, 3, '[]')
+                else:
+                    worksheet.write(row, 3, str(message.CC))
             except Exception:
-                worksheet.write(row, 3, '')
+                worksheet.write(row, 3, '[]')
 
             worksheet.write(row, 4, received_date_time_string)
 
             worksheet.write(row, 5, importance_list[message.Importance])
             worksheet.write(row, 6, sensitivity_list[message.Sensitivity])
-            worksheet.write(row, 7, message.Categories)
+
+            if len(message.Categories) == 0:
+                worksheet.write(row, 7, '[]')
+            else:
+                worksheet.write(row, 7, message.Categories)
 
             worksheet.write(row, 8, ("Unread" if message.UnRead else "Read"))
             worksheet.write(row, 9, str(message.Subject))
