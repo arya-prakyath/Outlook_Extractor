@@ -92,7 +92,10 @@ def extract_mail():
             worksheet.write(row, 0, row)
 
             try:
-                worksheet.write(row, 1, str(message.SenderName))
+                if 'O=EXCHANGELABS' in str(message.SenderEmailAddress):
+                    worksheet.write(row, 1, str(message.SenderEmailAddress).split('-')[-1].lower()+'@deloitte.com')
+                else:
+                    worksheet.write(row, 1, str(message.SenderEmailAddress))
             except Exception:
                 worksheet.write(row, 1, '-')
 
