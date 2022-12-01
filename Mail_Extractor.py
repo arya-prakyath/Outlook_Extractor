@@ -82,6 +82,7 @@ def extract_mail():
                                                       int(received_date[1]),
                                                       int(received_date[2]))
                 if received_datetime > to_date:
+                    print(received_date_time_string)
                     continue
                 if received_datetime < from_date:
                     break
