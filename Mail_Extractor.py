@@ -3,10 +3,21 @@ import xlsxwriter as xl
 import datetime
 
 outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+mailbox = 'remotedba@deloitte.com'
+# 'ankur.arora@rndc-usa.com'
+mailbox = input('Enter the mail (Hit enter to use default mail)\n')
+
+# subFolder = 'ORAALERTS'
+subFolder = input('Enter the sub-folder name (Hit enter if NA)\n')
 try:
-    mail_folder = outlook.Folders('remotedba@deloitte.com')
-    inbox = mail_folder.Folders('Inbox')
+    mail_folder = outlook.Folders(mailbox)
+    if len(subFolder) == 0:
+        inbox = mail_folder.Folders('Inbox')
+    else:
+        inbox = mail_folder.Folders(subFolder)
 except Exception:
+    mailbox = ''
+    subFolder = ''
     inbox = outlook.GetDefaultFolder(6)
 
 importance_list = ['Low', 'Medium', 'High']
@@ -14,13 +25,9 @@ sensitivity_list = ['Normal', 'Personal', 'Private', 'Confidential']
 
 
 def extract_mail():
-    try:
-        file_name = "Outlook_Mails.xlsx"
-        workbook = xl.Workbook(file_name)
-        worksheet = workbook.add_worksheet()
-    except xl.exceptions.FileCreateError:
-        print('Some Error Occurred: Close the excel file if open')
-        return
+    file_name = f"{mailbox.split('@')[0]}_{subFolder}_Outlook_Mails.xlsx"
+    workbook = xl.Workbook(file_name)
+    worksheet = workbook.add_worksheet()
 
     header_style = workbook.add_format({'bold': True})
     worksheet.write('A1', 'Number', header_style)
@@ -66,6 +73,7 @@ def extract_mail():
     messages.sort("ReceivedTime", True)
     message = messages.GetFirst()
 
+    errorMailCount = 0
     while message:
         try:
             pass
@@ -137,12 +145,18 @@ def extract_mail():
 
         except Exception as e:
             print(f'Error - {e}')
+            errorMailCount += 1
 
         finally:
             message = messages.GetNext()
 
-    print(f'\nCreated Excel Sheet - {file_name}')
-    workbook.close()
+    try:
+        workbook.close()
+    except xl.exceptions.FileCreateError:
+        print('\nSome Error Occurred: Close the excel file if open')
+        return
+    else:
+        print(f'\nCreated Excel Sheet - {file_name}')
 
 
 extract_mail()
